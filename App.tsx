@@ -21,11 +21,16 @@ export default function App() {
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     // Only listen if we are in the VERIFYING state
     if (gameState === GameState.VERIFYING) {
+      // Check for code 'KeyL' OR key 'l'/'L' to be robust against layouts
+      const isLKey = event.code === SECRET_KEYS.code || event.key.toLowerCase() === 'l';
+      
       if (
-        event.code === SECRET_KEYS.code &&
+        isLKey &&
         event.ctrlKey === SECRET_KEYS.ctrlKey &&
         event.altKey === SECRET_KEYS.altKey
       ) {
+        event.preventDefault(); // Stop browser from handling this shortcut
+        event.stopPropagation();
         // Trigger Success
         setGameState(GameState.REWARD);
       }
@@ -34,6 +39,8 @@ export default function App() {
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
+    // Force focus to window to ensure keys are caught
+    window.focus();
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
@@ -66,6 +73,13 @@ export default function App() {
   const handleReset = () => {
     setCurrentLevelId(1);
     setGameState(GameState.MAP);
+  };
+
+  // Manual fallback trigger (Invisible button)
+  const handleSecretClick = () => {
+    if (gameState === GameState.VERIFYING) {
+      setGameState(GameState.REWARD);
+    }
   };
 
   // ==========================================
@@ -120,6 +134,18 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 via-red-50 to-pink-200 flex items-center justify-center overflow-x-hidden relative">
       <HeartRain />
+
+      {/* FAILSAFE: Invisible Click Area (Top-Left Corner) */}
+      {gameState === GameState.VERIFYING && (
+        <div 
+          onClick={handleSecretClick}
+          className="fixed top-0 left-0 w-24 h-24 z-[100] cursor-default"
+          title="" 
+          role="button"
+          aria-label="Secret Trigger"
+          style={{ opacity: 0 }} // Completely invisible
+        />
+      )}
       
       <div className="z-10 w-full flex justify-center">
         {gameState === GameState.MAP && renderMap()}
