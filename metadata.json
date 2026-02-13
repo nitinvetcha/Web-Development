@@ -1,0 +1,5 @@
+{
+  "name": "Valentine's Quest",
+  "description": "A romantic level-based game where the player completes dares to unlock rewards. Designed for long-distance couples playing via screen share.",
+  "requestFramePermissions": []
+}
